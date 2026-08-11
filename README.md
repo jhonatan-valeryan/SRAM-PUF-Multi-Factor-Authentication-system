@@ -264,7 +264,7 @@ To run this project, you need:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/sram-puf-mfa-authentication.git
+git clone https://github.com/jhonatan-valeryan/sram-puf-mfa-authentication.git
 ```
 
 Then navigate to the repository:
@@ -272,10 +272,6 @@ Then navigate to the repository:
 ```bash
 cd sram-puf-mfa-authentication
 ```
-
-Replace `YOUR-USERNAME` with your GitHub username.
-
----
 
 ### 2. Install Python Dependencies
 
