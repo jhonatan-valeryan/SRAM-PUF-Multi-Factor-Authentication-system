@@ -1,57 +1,55 @@
 # SRAM PUF Multi-Factor Authentication System
 
-A hardware-based multi-factor authentication (MFA) prototype developed using **Python** and an **Arduino UNO R3**.
+A multi-factor authentication (MFA) prototype developed using **Python** and an **Arduino UNO R3**.
 
-The system combines password-based authentication with a hardware authentication factor. During registration, a device identifier obtained from the Arduino is associated with the user's account. During login, both the user's password and the connected Arduino device must be successfully verified before access is granted.
+The system combines password-based authentication with hardware-based authentication. During registration, the user's password is hashed and a device identifier obtained from the Arduino is associated with the account. During login, both the password and the connected Arduino device must be successfully verified before access is granted.
+
+---
 
 ## Project Overview
 
-Traditional username and password authentication relies only on something the user knows. If the password is compromised, an unauthorized user may be able to access the account.
-
-This project adds a second authentication factor using an Arduino UNO R3 as a hardware device.
-
-The authentication process consists of:
+This project demonstrates a two-factor authentication system consisting of:
 
 1. **Password Authentication** — The user's password is hashed using SHA-256 and compared with the stored password hash.
-2. **Hardware Authentication** — The Python application communicates with the connected Arduino through a serial connection and retrieves its device identifier.
-3. **Multi-Factor Verification** — Access is granted only when both the password and hardware device match the information registered to the user.
+2. **Hardware Authentication** — The Python application communicates with an Arduino UNO R3 through a serial connection and retrieves its device identifier.
 
-This demonstrates the concept of combining:
+Access is granted only when both authentication factors are successfully verified.
 
-- **Something the user knows** — password
-- **Something the user possesses** — registered Arduino device
+The system therefore combines:
+
+* **Something the user knows** — Password
+* **Something the user possesses** — Registered Arduino device
 
 ---
 
 ## Features
 
-- User registration and login
-- Password confirmation during registration
-- SHA-256 password hashing
-- CSV-based user database
-- Automatic detection of available serial ports
-- Interactive Arduino COM-port selection
-- Python-to-Arduino serial communication
-- Hardware device enrolment during registration
-- Hardware-based second-factor authentication
-- Detection of an unregistered Arduino device
-- Multi-factor authentication success and failure handling
-- Persistent hardware identifier provided by the Arduino
+* User registration and login
+* Password confirmation during registration
+* SHA-256 password hashing
+* CSV-based user data storage
+* Detection of available serial/COM ports
+* Arduino UNO R3 port selection
+* Python-to-Arduino serial communication using PySerial
+* Hardware device registration
+* Hardware-based second-factor authentication
+* Detection of an incorrect hardware device
+* Successful and failed MFA verification
 
 ---
 
 ## Technologies Used
 
-| Technology | Purpose |
-|---|---|
-| Python | Main authentication application |
-| Arduino C/C++ | Arduino firmware |
-| Arduino UNO R3 | Hardware authentication device |
-| PySerial | Communication between Python and Arduino |
-| SHA-256 | Password hashing |
-| CSV | User credential and device information storage |
-| EEPROM | Persistent Arduino device identifier storage |
-| Serial Communication | Communication between the computer and Arduino |
+| Technology           | Purpose                                      |
+| -------------------- | -------------------------------------------- |
+| Python               | Main authentication application              |
+| Arduino C/C++        | Arduino firmware                             |
+| Arduino UNO R3       | Hardware authentication device               |
+| PySerial             | Python-Arduino serial communication          |
+| SHA-256              | Password hashing                             |
+| CSV                  | User authentication data storage             |
+| EEPROM               | Persistent Arduino device identifier storage |
+| Serial Communication | Communication between Python and Arduino     |
 
 ---
 
@@ -69,9 +67,9 @@ sram-puf-mfa-authentication/
 │
 ├── screenshots/
 │   ├── registration-port-selection.jpeg
-│   ├── registration-process.jpeg
+│   ├── registration-success.jpeg
 │   ├── login-success.jpeg
-│   └── login-failed.jpeg
+│   └── login-failed-wrong-device.jpeg
 │
 ├── sample/
 │   └── database_sample.csv
@@ -84,165 +82,77 @@ sram-puf-mfa-authentication/
 
 ---
 
-## How the System Works
+## How It Works
 
 ### Registration
 
 During registration:
 
 1. The user selects that they have not registered before.
-2. The user creates a username.
-3. The user creates and confirms a password.
-4. The Python application detects available serial ports.
-5. The user selects the COM port associated with the Arduino UNO.
-6. Python opens a serial connection with the Arduino.
-7. The application sends a `GET_PUF` request to the Arduino.
-8. The Arduino returns its device identifier.
-9. The password is hashed using SHA-256.
-10. The username, password hash, and hardware identifier are stored in the CSV database.
-
-Conceptually:
-
-```text
-User
-  │
-  ├── Username
-  │
-  ├── Password
-  │      │
-  │      ▼
-  │   SHA-256
-  │      │
-  │      ▼
-  │ Password Hash
-  │
-  └── Arduino UNO
-          │
-          ▼
-      Device ID
-          │
-          ▼
-     database.csv
-```
-
----
+2. The user creates a username and password.
+3. The password is confirmed.
+4. The application displays the available serial ports.
+5. The user selects the COM port connected to the Arduino UNO R3.
+6. Python requests the device identifier from the Arduino.
+7. The password is hashed using SHA-256.
+8. The username, password hash, and hardware identifier are stored for authentication.
 
 ### Login
 
 During login:
 
 1. The user enters their username and password.
-2. The password is hashed using SHA-256.
-3. The generated hash is compared with the stored password hash.
-4. If the password is correct, the first authentication factor succeeds.
-5. The application asks the user to connect the registered Arduino.
-6. The available serial ports are displayed.
-7. The user selects the Arduino COM port.
-8. Python requests the device identifier from the Arduino.
-9. The returned identifier is compared with the identifier registered to the user.
-10. Access is granted only when the hardware identifiers match.
-
-The authentication process can be represented as:
-
-```text
-          LOGIN
-            │
-            ▼
-    Username + Password
-            │
-            ▼
-      Hash Password
-            │
-            ▼
-     Password Correct?
-        /         \
-      No           Yes
-      │             │
-      ▼             ▼
- Access Denied   Arduino Check
-                    │
-                    ▼
-               Read Device ID
-                    │
-                    ▼
-             Device ID Match?
-                /       \
-              No         Yes
-              │           │
-              ▼           ▼
-         Access Denied   MFA
-                       Successful
-```
-
----
-
-## Arduino Communication
-
-The Python application communicates with the Arduino through a serial connection at:
-
-```text
-9600 baud
-```
-
-The application sends:
-
-```text
-GET_PUF
-```
-
-to request the hardware identifier from the Arduino.
-
-The Arduino returns its device identifier through the serial connection.
-
-Python then compares the received identifier with the identifier stored during user registration.
-
-The serial connection uses **PySerial** with a timeout of **5 seconds**.
+2. The entered password is hashed and compared with the stored password hash.
+3. If the password is correct, password authentication succeeds.
+4. The application asks for the registered hardware device.
+5. The user selects the Arduino's serial port.
+6. The application retrieves the device identifier from the Arduino.
+7. The detected identifier is compared with the registered identifier.
+8. Access is granted only when the hardware identifiers match.
 
 ---
 
 ## Demonstration
 
-### 1. User Registration and Arduino Selection
+### 1. Registration Process
 
-The user creates a username and password and then connects the Arduino UNO R3.
+The user begins by selecting that they have not registered before and creates a username and password.
 
-The application automatically detects the available serial ports and allows the user to select the port associated with the Arduino.
+The application then detects the available serial ports and allows the user to select the port associated with the connected Arduino UNO R3.
 
-![Registration and Arduino Port Selection](screenshots/registration-port-selection.jpeg)
+![Registration Port Selection](screenshots/registration-port-selection.jpeg)
 
----
+After the Arduino port is selected, the application requests and receives the device identifier from the Arduino. The device is then associated with the newly registered account.
 
-### 2. Successful Hardware Registration
+A successful message confirms that both the user registration and hardware device registration have been completed.
 
-After the correct Arduino serial port is selected, the Python application requests the device identifier.
-
-The returned identifier is associated with the user's account and registration is completed successfully.
-
-![Successful Hardware Registration](screenshots/registration-process.jpeg)
+![Successful Registration](screenshots/registration-success.jpeg)
 
 ---
 
-### 3. Successful Multi-Factor Authentication
+### 2. Successful Login Attempt
 
-During login, the correct username and password successfully complete the first authentication factor.
+During login, the user first enters the correct username and password.
 
-The registered Arduino is then connected as the second authentication factor. When the detected device identifier matches the registered identifier, multi-factor authentication succeeds and access is granted.
+After successful password authentication, the system performs the second authentication step. The registered Arduino UNO R3 is selected and its device identifier is retrieved.
 
-![Successful Multi-Factor Authentication](screenshots/login-success.jpeg)
+When the detected device identifier matches the identifier stored during registration, multi-factor authentication succeeds and access is granted.
+
+![Successful Login](screenshots/login-success.jpeg)
 
 ---
 
-### 4. Authentication Failure with a Different Device
+### 3. Failed Login Attempt
 
 The system was also tested using a different Arduino device.
 
-In this test, the username and password are correct, meaning password authentication succeeds. However, the identifier returned by the connected Arduino does not match the identifier registered to the account.
+In this scenario, the correct username and password are entered, so the password authentication stage succeeds. However, the identifier received from the connected Arduino does not match the hardware identifier registered to the account.
 
-The hardware authentication therefore fails and access is denied.
+As a result, the second authentication factor fails and access is denied.
 
-![Failed Authentication with Different Device](screenshots/login-failed.jpeg)
+![Failed Login Attempt](screenshots/login-failed-wrong-device.jpeg)
 
-This demonstrates that possession of the registered hardware device is required in addition to knowing the correct password.
+This test demonstrates that knowing the correct username and password alone is not sufficient to complete authentication. The registered hardware device is also required.
 
 ---
 
@@ -250,32 +160,29 @@ This demonstrates that possession of the registered hardware device is required 
 
 ### Prerequisites
 
-To run this project, you need:
+To run the project, you need:
 
-- Python 3
-- Arduino IDE
-- Arduino UNO R3
-- USB cable
-- PySerial
-- A computer with an available USB/serial connection
+* Python 3
+* Arduino IDE
+* Arduino UNO R3
+* USB cable
+* PySerial
 
----
-
-### 1. Clone the Repository
+### Clone the Repository
 
 ```bash
-git clone https://github.com/jhonatan-valeryan/sram-puf-mfa-authentication.git
+git clone https://github.com/YOUR-USERNAME/sram-puf-mfa-authentication.git
 ```
 
-Then navigate to the repository:
+Navigate into the repository:
 
 ```bash
 cd sram-puf-mfa-authentication
 ```
 
-### 2. Install Python Dependencies
+### Install Dependencies
 
-Install the required Python package using:
+Install the required Python dependency:
 
 ```bash
 pip install -r requirements.txt
@@ -287,267 +194,141 @@ The `requirements.txt` file contains:
 pyserial>=3.5
 ```
 
-Alternatively, PySerial can be installed directly:
-
-```bash
-pip install pyserial
-```
-
 ---
 
 ## Arduino Setup
 
-1. Connect the Arduino UNO R3 to the computer using USB.
-2. Open:
-
-```text
-src/arduino/sram_puf_device.ino
-```
-
-in the Arduino IDE.
-
-3. Select:
-
-```text
-Tools → Board → Arduino Uno
-```
-
+1. Connect the Arduino UNO R3 to the computer.
+2. Open `src/arduino/sram_puf_device.ino` using the Arduino IDE.
+3. Select **Arduino Uno** as the board.
 4. Select the correct COM port.
-5. Upload the Arduino program.
-6. Close the Arduino Serial Monitor before starting the Python application.
+5. Upload the program to the Arduino.
+6. Close the Arduino Serial Monitor before running the Python application.
 
-> The Arduino Serial Monitor should be closed because the Python application needs access to the same serial port.
+The Python application communicates with the Arduino at a baud rate of **9600**.
 
 ---
 
-## Running the Python Application
+## Running the Application
 
-Navigate to:
+Navigate to the Python source directory:
 
 ```bash
 cd src/python
 ```
 
-Run:
+Run the program:
 
 ```bash
 python authentication_system.py
 ```
 
-The program will ask:
+The application will ask:
 
 ```text
 Have you registered before? (yes/no):
 ```
 
-Enter:
-
-```text
-no
-```
-
-to create a new account.
-
-Enter:
-
-```text
-yes
-```
-
-to log in using an existing account.
+Enter `no` to register a new account or `yes` to log in with an existing account.
 
 ---
 
-## User Database
+## Authentication Logic
 
-The application stores registered users in:
+The system requires both authentication factors to succeed:
 
-```text
-database.csv
-```
-
-The database contains:
-
-```text
-username,password,puf_id
-```
-
-For example:
-
-```text
-username,password,puf_id
-sampleuser,<hashed-password>,<device-identifier>
-```
-
-The real `database.csv` file is excluded from this repository through `.gitignore` because it may contain authentication information.
-
-A demonstration file is provided instead:
-
-```text
-sample/database_sample.csv
-```
+| Password  | Arduino Device    | Result         |
+| --------- | ----------------- | -------------- |
+| Correct   | Registered device | MFA Successful |
+| Correct   | Different device  | Access Denied  |
+| Incorrect | Registered device | Access Denied  |
+| Incorrect | Different device  | Access Denied  |
 
 ---
 
-## Security Design
+## Security Features
 
 ### Password Hashing
 
-Passwords are not stored directly as plaintext in the database.
+Passwords are hashed using the SHA-256 hashing algorithm before being stored.
 
-The Python application hashes passwords using:
+The application compares password hashes rather than directly comparing plaintext passwords.
 
-```python
-hashlib.sha256(password.encode()).hexdigest()
+### Hardware-Based Authentication
+
+After successful password authentication, the application retrieves the identifier from the connected Arduino.
+
+The detected identifier must match the identifier registered to the user account before access is granted.
+
+### Two Authentication Factors
+
+The system combines:
+
+```text
+Password
+   +
+Registered Arduino Device
+   ↓
+Multi-Factor Authentication
 ```
 
-During login, the entered password is hashed again and compared with the stored hash.
+Possession of only one factor is insufficient for successful authentication.
 
 ---
 
-### Hardware Authentication
+## Limitations
 
-After successful password authentication, the system requires the registered Arduino hardware device.
+This project is an educational prototype and is not intended for production use.
 
-The application:
+Current limitations include:
 
-```text
-Python
-   │
-   │ GET_PUF
-   ▼
-Arduino UNO
-   │
-   │ Device Identifier
-   ▼
-Python
-   │
-   ▼
-Compare with Registered Identifier
-```
+* SHA-256 is used directly for password hashing.
+* User information is stored in a CSV file.
+* The hardware authentication mechanism relies on a persistent device identifier.
+* Serial communication between Python and the Arduino is not encrypted.
+* The system does not currently implement account lockout after repeated failed attempts.
 
-If the identifiers match:
-
-```text
-MULTI-FACTOR AUTHENTICATION SUCCESS
-```
-
-If they do not match:
-
-```text
-SRAM PUF AUTHENTICATION FAILED
-Unknown Device Detected!
-Access Denied.
-```
-
----
-
-## Authentication Scenarios
-
-| Password | Hardware Device | Result |
-|---|---|---|
-| Correct | Registered device | Authentication successful |
-| Correct | Different device | Access denied |
-| Incorrect | Registered device | Access denied |
-| Incorrect | Different device | Access denied |
-
-Both authentication factors must therefore be successfully verified before access is granted.
-
----
-
-## Security Limitations
-
-This project was developed as an educational prototype and is **not intended for production use**.
-
-Several security limitations should be considered:
-
-### 1. SHA-256 Password Hashing
-
-The current implementation uses SHA-256 directly for password hashing.
-
-Although this prevents plaintext passwords from being stored, general-purpose SHA-256 is not ideal for production password storage because it is designed to be computationally fast.
-
-Production systems should use dedicated password hashing algorithms such as:
-
-- Argon2
-- bcrypt
-- scrypt
-
-with appropriate salts and security parameters.
-
-### 2. CSV Database
-
-User authentication information is stored in a CSV file.
-
-A production authentication system should use a properly secured database with appropriate access controls and encryption where necessary.
-
-### 3. Hardware Identifier Security
-
-The current prototype uses a persistent hardware identifier for device verification.
-
-If an attacker can extract and reproduce the identifier, the hardware factor could potentially be cloned.
-
-A stronger implementation could use challenge-response authentication instead of transmitting and directly comparing a static identifier.
-
-### 4. Serial Communication
-
-Communication between the Python application and Arduino is not encrypted.
-
-A production implementation would require stronger protection against interception, replay, and device impersonation.
-
-### 5. SRAM PUF Implementation
-
-The project demonstrates an SRAM PUF-inspired hardware authentication concept. The current prototype should not be considered a complete production-grade Physical Unclonable Function implementation.
-
-A more advanced implementation could directly characterize SRAM startup behaviour and use error correction or fuzzy extraction techniques to reconstruct stable cryptographic information from noisy PUF responses.
+For a production system, a dedicated password hashing algorithm such as **Argon2**, **bcrypt**, or **scrypt** should be used together with a secure database and stronger hardware authentication mechanisms.
 
 ---
 
 ## Future Improvements
 
-Possible improvements include:
-
-- Replace SHA-256 password hashing with Argon2 or bcrypt
-- Add unique password salts
-- Replace CSV storage with a secure database
-- Implement account lockout after repeated failed login attempts
-- Add authentication attempt logging
-- Implement challenge-response hardware authentication
-- Protect against replay attacks
-- Encrypt sensitive communication
-- Add error-tolerant PUF reconstruction
-- Improve automatic Arduino detection
-- Add a graphical user interface
-- Implement user account management
-- Add password reset functionality
+* Replace SHA-256 password hashing with Argon2 or bcrypt
+* Add unique password salts
+* Replace CSV storage with a secure database
+* Add account lockout after repeated failed attempts
+* Add authentication attempt logging
+* Implement challenge-response hardware authentication
+* Protect against replay attacks
+* Improve automatic Arduino detection
+* Add a graphical user interface
+* Add user account management
 
 ---
 
 ## Learning Outcomes
 
-Through this project, I gained practical experience with:
+This project provided practical experience with:
 
-- Multi-factor authentication concepts
-- Hardware-based authentication
-- Python application development
-- Arduino programming
-- Serial communication between software and hardware
-- Password hashing
-- Authentication system design
-- CSV data management
-- Basic hardware security concepts
-- Testing successful and unsuccessful authentication scenarios
+* Multi-factor authentication
+* Hardware-based authentication
+* Python programming
+* Arduino programming
+* Serial communication
+* Password hashing
+* Authentication system design
+* Hardware and software integration
+* Testing successful and unsuccessful authentication scenarios
 
 ---
 
 ## Disclaimer
 
-This project was developed for **educational and academic purposes**.
-
-It is a prototype intended to demonstrate multi-factor and hardware-based authentication concepts and should not be used as a production authentication system without significant additional security improvements.
+This project was developed for educational purposes as a prototype for exploring multi-factor and hardware-based authentication concepts.
 
 ---
 
 ## License
 
-This project is licensed under the **MIT License**. See the `LICENSE` file for more information.
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.
