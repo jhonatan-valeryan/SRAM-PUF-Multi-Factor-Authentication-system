@@ -116,43 +116,42 @@ During login:
 
 ### 1. Registration Process
 
-The user begins by selecting that they have not registered before and creates a username and password.
+The registration process begins when the user selects that they have not registered before. The user then creates a username and password and confirms the password.
 
-The application then detects the available serial ports and allows the user to select the port associated with the connected Arduino UNO R3.
+After entering the account information, the system asks the user to connect the SRAM PUF device. The application detects the available serial ports and displays them for selection.
 
-![Registration Port Selection](screenshots/registration-port-selection.jpeg)
+![Registration Process](Screenshots/registration_process.jpeg)
 
-After the Arduino port is selected, the application requests and receives the device identifier from the Arduino. The device is then associated with the newly registered account.
+The user then selects the COM port associated with the connected Arduino UNO R3. After the correct port is selected, the Python application communicates with the Arduino and retrieves its device identifier.
 
-A successful message confirms that both the user registration and hardware device registration have been completed.
+The detected device identifier is associated with the newly created user account. Once the process is completed, the system displays **Registration Successful** and confirms that the PUF device has been registered successfully.
 
-![Successful Registration](screenshots/registration-success.jpeg)
+![Registration Port Selection and Successful Registration](Screenshots/registration-port-selection.jpeg)
 
 ---
 
 ### 2. Successful Login Attempt
 
-During login, the user first enters the correct username and password.
+During login, the user enters the correct username and password. After the password is successfully verified, the system proceeds to the second authentication stage.
 
-After successful password authentication, the system performs the second authentication step. The registered Arduino UNO R3 is selected and its device identifier is retrieved.
+The user selects the COM port of the registered Arduino UNO R3, and the application retrieves its device identifier. When the detected device identifier matches the identifier stored during registration, multi-factor authentication succeeds and access is granted.
 
-When the detected device identifier matches the identifier stored during registration, multi-factor authentication succeeds and access is granted.
-
-![Successful Login](screenshots/login-success.jpeg)
+![Successful Login](Screenshots/login-success.jpeg)
 
 ---
 
 ### 3. Failed Login Attempt
 
-The system was also tested using a different Arduino device.
+The system is also tested using a different Arduino device.
 
-In this scenario, the correct username and password are entered, so the password authentication stage succeeds. However, the identifier received from the connected Arduino does not match the hardware identifier registered to the account.
+In this scenario, the correct username and password are entered, so password authentication succeeds. However, the device identifier retrieved from the connected Arduino does not match the identifier registered to the user account.
 
-As a result, the second authentication factor fails and access is denied.
+As a result, the SRAM PUF authentication fails and access is denied.
 
-![Failed Login Attempt](screenshots/login-failed-wrong-device.jpeg)
+![Failed Login Attempt](Screenshots/login-failed.jpeg)
 
-This test demonstrates that knowing the correct username and password alone is not sufficient to complete authentication. The registered hardware device is also required.
+This demonstrates that knowing the correct username and password alone is not sufficient to gain access. The registered hardware device is also required to successfully complete the multi-factor authentication process.
+
 
 ---
 
